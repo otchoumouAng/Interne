@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Documentation Sécurisation VPS Ubuntu</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        body { font-family: 'Inter', sans-serif; scroll-behavior: smooth; }
+        .sidebar-link.active {
+            background-color: #eff6ff;
+            color: #2563eb;
+            border-right: 4px solid #2563eb;
+        }
+        pre { position: relative; }
+        .copy-btn {
+            position: absolute;
+            top: 0.5rem;
+            right: 0.5rem;
+            padding: 0.25rem 0.5rem;
+            font-size: 0.75rem;
+            background: #374151;
+            color: white;
+            border-radius: 0.375rem;
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+        pre:hover .copy-btn { opacity: 1; }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-900">
+
+    <!-- Mobile Header -->
+    <div class="lg:hidden bg-white border-b p-4 flex justify-between items-center sticky top-0 z-50">
+        <h1 class="font-bold text-blue-600">VPS Setup Guide</h1>
+        <button id="menuBtn" class="p-2"><i data-lucide="menu"></i></button>
+    </div>
+
+    <div class="flex">
+        <!-- Sidebar Navigation -->
+        <aside id="sidebar" class="hidden lg:block fixed h-screen w-64 bg-white border-r overflow-y-auto z-40 transition-all duration-300">
+            <div class="p-6">
+                <div class="flex items-center gap-2 mb-8">
+                    <div class="bg-blue-600 p-2 rounded-lg text-white">
+                        <i data-lucide="shield-check"></i>
+                    </div>
+                    <span class="font-bold text-xl tracking-tight">VPS Guard</span>
+                </div>
+                <nav class="space-y-1">
+                    <a href="#summary" class="sidebar-link flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-100 transition-colors">
+                        <i data-lucide="list-checks" class="w-4 h-4"></i> Résumé
+                    </a>
+                    <a href="#phase1" class="sidebar-link flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-100 transition-colors">
+                        <i data-lucide="key" class="w-4 h-4"></i> Phase 1 : Accès
+                    </a>
+                    <a href="#phase2" class="sidebar-link flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-100 transition-colors">
+                        <i data-lucide="settings" class="w-4 h-4"></i> Phase 2 : Système
+                    </a>
+                    <a href="#phase3" class="sidebar-link flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-100 transition-colors">
+                        <i data-lucide="lock" class="w-4 h-4"></i> Phase 3 : SSH
+                    </a>
+                    <a href="#phase4" class="sidebar-link flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-100 transition-colors">
+                        <i data-lucide="shield" class="w-4 h-4"></i> Phase 4 : Protection
+                    </a>
+                    <a href="#phase5" class="sidebar-link flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-100 transition-colors">
+                        <i data-lucide="refresh-cw" class="w-4 h-4"></i> Phase 5 : Maintenance
+                    </a>
+                    <a href="#script" class="sidebar-link flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-100 transition-colors">
+                        <i data-lucide="terminal" class="w-4 h-4"></i> Script One-liner
+                    </a>
+                    <a href="#phase6" class="sidebar-link flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-100 transition-colors">
+                        <i data-lucide="database" class="w-4 h-4"></i> Phase 6 : Backup
+                    </a>
+                    <a href="#final" class="sidebar-link flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-100 transition-colors">
+                        <i data-lucide="check-circle" class="w-4 h-4"></i> Checklist Finale
+                    </a>
+                </nav>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="flex-1 lg:ml-64 p-4 md:p-10 max-w-4xl mx-auto">
+            <header class="mb-12">
+                <div class="flex items-center gap-2 text-blue-600 font-semibold mb-2">
+                    <span class="px-2 py-1 bg-blue-100 rounded text-xs uppercase tracking-wider">v1.0.0</span>
+                    <span class="text-sm">Ubuntu Server Security</span>
+                </div>
+                <h1 class="text-4xl font-extrabold text-slate-900 mb-4">Initialisation & Sécurisation VPS</h1>
+                <p class="text-lg text-slate-600 leading-relaxed">
+                    Ce guide transforme un serveur vierge en une machine prête pour la production. Suivez chaque étape méthodiquement.
+                </p>
+            </header>
+
+            <!-- Quick Summary -->
+            <section id="summary" class="mb-16 scroll-mt-24">
+                <div class="bg-white rounded-2xl border p-8 shadow-sm">
+                    <h2 class="text-xl font-bold mb-6 flex items-center gap-2">
+                        <i data-lucide="list-checks" class="text-blue-600"></i> Résumé de la Checklist
+                    </h2>
+                    <div class="grid md:grid-cols-2 gap-4" id="quickChecklist">
+                        <!-- Checklist items populated via JS -->
+                    </div>
+                </div>
+            </section>
+
+            <!-- Phase 1 -->
+            <section id="phase1" class="mb-16 scroll-mt-24">
+                <h2 class="text-2xl font-bold mb-6">🚀 Phase 1 : Préparation & Accès</h2>
+                <div class="prose prose-slate max-w-none space-y-4">
+                    <p>Avant même de vous connecter, préparez votre clé SSH sur votre ordinateur personnel.</p>
+                    <div class="bg-slate-900 rounded-xl p-5 text-slate-300 font-mono text-sm overflow-x-auto">
+                        <div class="flex justify-between items-center mb-2">
+                            <span class="text-xs text-slate-500 uppercase font-sans">Locale - Générer Clé</span>
+                        </div>
+                        <pre><code>ssh-keygen -t ed25519 -C "votre_email@example.com"</code><button class="copy-btn" onclick="copyCode(this)">Copier</button></pre>
+                    </div>
+                    <div class="bg-slate-900 rounded-xl p-5 text-slate-300 font-mono text-sm overflow-x-auto">
+                        <div class="flex justify-between items-center mb-2">
+                            <span class="text-xs text-slate-500 uppercase font-sans">Locale - Déployer Clé</span>
+                        </div>
+                        <pre><code>ssh-copy-id root@IP_DU_VPS</code><button class="copy-btn" onclick="copyCode(this)">Copier</button></pre>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Phase 2 -->
+            <section id="phase2" class="mb-16 scroll-mt-24">
+                <h2 class="text-2xl font-bold mb-6">🛠️ Phase 2 : Configuration du Système</h2>
+                <div class="space-y-8">
+                    <div>
+                        <h3 class="text-lg font-semibold mb-3 flex items-center gap-2 text-slate-700">1. Mise à jour initiale</h3>
+                        <div class="bg-slate-900 rounded-xl p-5 text-slate-300 font-mono text-sm">
+                            <pre><code>apt update && apt full-upgrade -y</code><button class="copy-btn" onclick="copyCode(this)">Copier</button></pre>
+                        </div>
+                    </div>
+                    <div>
+                        <h3 class="text-lg font-semibold mb-3 flex items-center gap-2 text-slate-700">2. Création de l'utilisateur sudo</h3>
+                        <div class="bg-blue-50 border-l-4 border-blue-500 p-4 mb-4 text-blue-800 text-sm">
+                            <i data-lucide="alert-circle" class="inline w-4 h-4 mr-1 mb-1"></i>
+                            <strong>Règle d'or :</strong> Ne jamais travailler directement en root après cette étape.
+                        </div>
+                        <div class="bg-slate-900 rounded-xl p-5 text-slate-300 font-mono text-sm">
+                            <pre><code>adduser adminuser
+usermod -aG sudo adminuser</code><button class="copy-btn" onclick="copyCode(this)">Copier</button></pre>
+                        </div>
+                    </div>
+                    <div>
+                        <h3 class="text-lg font-semibold mb-3 flex items-center gap-2 text-slate-700">3. Fuseau horaire</h3>
+                        <div class="bg-slate-900 rounded-xl p-5 text-slate-300 font-mono text-sm">
+                            <pre><code>timedatectl set-timezone Europe/Paris
+timedatectl set-ntp true</code><button class="copy-btn" onclick="copyCode(this)">Copier</button></pre>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Phase 3 -->
+            <section id="phase3" class="mb-16 scroll-mt-24">
+                <h2 class="text-2xl font-bold mb-6">🔐 Phase 3 : Durcissement SSH</h2>
+                <div class="bg-white rounded-2xl border p-8 space-y-6">
+                    <p>Éditez <code>/etc/ssh/sshd_config</code> et modifiez les paramètres suivants :</p>
+                    <ul class="space-y-3 text-slate-700">
+                        <li class="flex items-center gap-3"><span class="w-1.5 h-1.5 rounded-full bg-blue-500"></span> <strong>Port 2222</strong> (Changez le port par défaut)</li>
+                        <li class="flex items-center gap-3"><span class="w-1.5 h-1.5 rounded-full bg-blue-500"></span> <strong>PermitRootLogin no</strong> (Bloque root)</li>
+                        <li class="flex items-center gap-3"><span class="w-1.5 h-1.5 rounded-full bg-blue-500"></span> <strong>PasswordAuthentication no</strong> (Clés uniquement)</li>
+                    </ul>
+                    <div class="bg-slate-900 rounded-xl p-5 text-slate-300 font-mono text-sm">
+                        <pre><code>sudo sshd -t
+sudo systemctl restart ssh</code><button class="copy-btn" onclick="copyCode(this)">Copier</button></pre>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Phase 4 -->
+            <section id="phase4" class="mb-16 scroll-mt-24">
+                <h2 class="text-2xl font-bold mb-6">🔥 Phase 4 : Réseau & Protection</h2>
+                <div class="grid md:grid-cols-2 gap-6">
+                    <div class="bg-white rounded-2xl border p-6">
+                        <h3 class="font-bold mb-4 flex items-center gap-2"><i data-lucide="shield" class="text-blue-600"></i> Pare-feu UFW</h3>
+                        <div class="bg-slate-900 rounded-xl p-4 text-slate-300 font-mono text-xs">
+                            <pre><code>sudo ufw default deny incoming
+sudo ufw default allow outgoing
+sudo ufw allow 2222/tcp
+sudo ufw enable</code><button class="copy-btn" onclick="copyCode(this)">Copier</button></pre>
+                        </div>
+                    </div>
+                    <div class="bg-white rounded-2xl border p-6">
+                        <h3 class="font-bold mb-4 flex items-center gap-2"><i data-lucide="zap" class="text-blue-600"></i> Fail2ban</h3>
+                        <div class="bg-slate-900 rounded-xl p-4 text-slate-300 font-mono text-xs">
+                            <pre><code>sudo apt install fail2ban -y
+# Config dans /etc/fail2ban/jail.local
+sudo systemctl restart fail2ban</code><button class="copy-btn" onclick="copyCode(this)">Copier</button></pre>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Script Section -->
+            <section id="script" class="mb-16 scroll-mt-24">
+                <div class="bg-slate-900 text-white rounded-2xl p-8 overflow-hidden relative">
+                    <div class="relative z-10">
+                        <h2 class="text-2xl font-bold mb-4 flex items-center gap-2"><i data-lucide="terminal" class="text-green-400"></i> Script d'Automatisation</h2>
+                        <p class="text-slate-400 mb-6">Exécutez ce script en tant que root pour appliquer les briques de sécurité en une fois.</p>
+                        <div class="bg-black/50 rounded-xl p-5 font-mono text-xs text-green-400 border border-green-900/30">
+                            <pre id="oneLinerCode"><code>#!/bin/bash
+set -e
+apt update && apt full-upgrade -y
+apt install -y ufw fail2ban unattended-upgrades htop
+ufw default deny incoming
+ufw allow 2222/tcp
+ufw --force enable
+sed -i 's/^#Port 22/Port 2222/' /etc/ssh/sshd_config
+sed -i 's/^#PermitRootLogin.*/PermitRootLogin no/' /etc/ssh/sshd_config
+sed -i 's/^PasswordAuthentication yes/PasswordAuthentication no/' /etc/ssh/sshd_config
+systemctl restart ssh
+systemctl restart fail2ban</code></pre>
+                            <button class="mt-4 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg text-sm transition-colors flex items-center gap-2" onclick="copyFullScript()">
+                                <i data-lucide="copy" class="w-4 h-4"></i> Copier le script complet
+                            </button>
+                        </div>
+                    </div>
+                    <div class="absolute -right-20 -top-20 opacity-10 scale-150 pointer-events-none">
+                        <i data-lucide="terminal" class="w-64 h-64 text-white"></i>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Final Checklist -->
+            <section id="final" class="mb-16 scroll-mt-24">
+                <div class="bg-white rounded-2xl border p-8 shadow-sm">
+                    <h2 class="text-xl font-bold mb-6 flex items-center gap-2">
+                        <i data-lucide="check-circle" class="text-green-600"></i> Vérification Finale
+                    </h2>
+                    <div class="space-y-4" id="finalChecks">
+                        <!-- Populated via JS -->
+                    </div>
+                </div>
+            </section>
+
+            <footer class="border-t py-12 text-center text-slate-500 text-sm">
+                <p>&copy; 2025 - Guide d'exploitation VPS Ubuntu</p>
+                <p class="mt-2 italic">Toujours effectuer un snapshot avant toute modification critique.</p>
+            </footer>
+        </main>
+    </div>
+
+    <!-- Notification system -->
+    <div id="toast" class="fixed bottom-5 right-5 bg-slate-800 text-white px-4 py-2 rounded-lg shadow-xl translate-y-20 opacity-0 transition-all duration-300 flex items-center gap-2 z-[100]">
+        <i data-lucide="check" class="w-4 h-4 text-green-400"></i> Code copié dans le presse-papier
+    </div>
+
+    <script>
+        // Initializing Lucide icons
+        lucide.createIcons();
+
+        // Data for checklists
+        const quickTasks = [
+            "Générer/Déployer clés SSH",
+            "Créer utilisateur sudo",
+            "Update système complet",
+            "Durcir config SSH",
+            "Pare-feu (UFW)",
+            "Fail2ban",
+            "Mises à jour auto",
+            "Fuseau horaire & NTP"
+        ];
+
+        const finalChecks = [
+            "Connexion SANS mot de passe active ?",
+            "Accès root direct bloqué ?",
+            "Port 22 fermé ?",
+            "Commandes sudo fonctionnelles ?",
+            "Fuseau horaire correct ?"
+        ];
+
+        // Rendering checklists
+        function renderChecklists() {
+            const container = document.getElementById('quickChecklist');
+            const finalContainer = document.getElementById('finalChecks');
+
+            quickTasks.forEach((task, i) => {
+                const id = `quick-${i}`;
+                const checked = localStorage.getItem(id) === 'true';
+                container.innerHTML += `
+                    <label class="flex items-center gap-3 p-3 rounded-lg hover:bg-slate-50 border cursor-pointer group transition-colors">
+                        <input type="checkbox" class="w-5 h-5 rounded border-slate-300 text-blue-600" id="${id}" ${checked ? 'checked' : ''} onchange="saveProgress('${id}')">
+                        <span class="text-slate-700 font-medium ${checked ? 'line-through text-slate-400' : ''}">${task}</span>
+                    </label>
+                `;
+            });
+
+            finalChecks.forEach((check, i) => {
+                const id = `final-${i}`;
+                const checked = localStorage.getItem(id) === 'true';
+                finalContainer.innerHTML += `
+                    <label class="flex items-center gap-3 p-4 rounded-xl border bg-slate-50 hover:bg-white transition-all cursor-pointer">
+                        <input type="checkbox" class="w-6 h-6 rounded border-slate-300 text-green-600 focus:ring-green-500" id="${id}" ${checked ? 'checked' : ''} onchange="saveProgress('${id}')">
+                        <span class="text-slate-800 font-medium">${check}</span>
+                    </label>
+                `;
+            });
+        }
+
+        function saveProgress(id) {
+            const checkbox = document.getElementById(id);
+            localStorage.setItem(id, checkbox.checked);
+            
+            // Toggle line-through on sibling text
+            const span = checkbox.nextElementSibling;
+            if (checkbox.checked) {
+                span.classList.add('line-through', 'text-slate-400');
+            } else {
+                span.classList.remove('line-through', 'text-slate-400');
+            }
+        }
+
+        // Copy functions
+        function showToast() {
+            const toast = document.getElementById('toast');
+            toast.classList.remove('translate-y-20', 'opacity-0');
+            setTimeout(() => {
+                toast.classList.add('translate-y-20', 'opacity-0');
+            }, 2000);
+        }
+
+        function copyCode(btn) {
+            const code = btn.previousElementSibling.innerText;
+            navigator.clipboard.writeText(code);
+            showToast();
+        }
+
+        function copyFullScript() {
+            const code = document.getElementById('oneLinerCode').innerText;
+            navigator.clipboard.writeText(code);
+            showToast();
+        }
+
+        // Active section tracking
+        const observerOptions = {
+            root: null,
+            threshold: 0.5
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    document.querySelectorAll('.sidebar-link').forEach(link => {
+                        link.classList.remove('active');
+                        if (link.getAttribute('href').substring(1) === entry.target.id) {
+                            link.classList.add('active');
+                        }
+                    });
+                }
+            });
+        }, observerOptions);
+
+        document.querySelectorAll('section').forEach(section => {
+            observer.observe(section);
+        });
+
+        // Mobile menu
+        const menuBtn = document.getElementById('menuBtn');
+        const sidebar = document.getElementById('sidebar');
+        menuBtn.addEventListener('click', () => {
+            sidebar.classList.toggle('hidden');
+            sidebar.classList.toggle('block');
+            sidebar.classList.toggle('w-full');
+        });
+
+        // Hide sidebar when clicking mobile link
+        document.querySelectorAll('.sidebar-link').forEach(link => {
+            link.addEventListener('click', () => {
+                if (window.innerWidth < 1024) {
+                    sidebar.classList.add('hidden');
+                }
+            });
+        });
+
+        renderChecklists();
+    </script>
+</body>
+</html>
