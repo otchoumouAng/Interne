@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Étude Stratégique - Système de Paiement</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    
+    <style>
+        .hide-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .hide-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+        .fade-in {
+            animation: fadeIn 0.5s ease-out forwards;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* --- Styles spécifiques pour l'export PDF --- */
+        @media print {
+            * {
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+            }
+            body {
+                background-color: #ffffff !important;
+            }
+            /* Masquer la navigation */
+            nav {
+                display: none !important;
+            }
+            /* Forcer l'affichage de tous les contenus (Matrice + Options) */
+            .tab-content {
+                display: block !important; 
+                opacity: 1 !important;
+                page-break-inside: avoid; /* Évite de couper une option en plein milieu */
+                margin-bottom: 3rem;
+            }
+            /* Masquer les éléments interactifs inutiles sur PDF */
+            .print-hidden {
+                display: none !important;
+            }
+        }
+    </style>
+</head>
+<body class="min-h-screen bg-slate-50 font-sans text-slate-800">
+
+    <!-- Header / Hero Section -->
+    <header class="bg-gradient-to-br from-slate-900 to-slate-800 text-white pt-20 pb-16 px-6">
+        <div class="max-w-6xl mx-auto flex flex-col md:flex-row justify-between items-start gap-6">
+            <div>
+                <div class="flex items-center gap-3 mb-6 text-blue-400">
+                    <i data-lucide="shield-check" class="w-6 h-6"></i>
+                    <span class="font-semibold tracking-wider uppercase text-sm">Note de Cadrage Stratégique</span>
+                </div>
+                <h1 class="text-4xl md:text-5xl font-bold mb-6 leading-tight">
+                    Étude Stratégique d'Implémentation <br />
+                    <span class="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-emerald-400">
+                        d'une Infrastructure de Paiement
+                    </span>
+                </h1>
+                <p class="text-slate-300 text-lg max-w-2xl leading-relaxed">
+                    Ce support interactif expose les différentes trajectoires technologiques, opérationnelles et commerciales pour la conception de votre plateforme d'encaissement et de décaissement.
+                </p>
+            </div>
+            
+            <!-- Bouton Export PDF -->
+            <button onclick="window.print()" class="print-hidden flex items-center gap-2 bg-white/10 hover:bg-white/20 border border-white/20 backdrop-blur-sm text-white px-5 py-2.5 rounded-xl font-medium transition-all shadow-sm shrink-0">
+                <i data-lucide="download" class="w-5 h-5"></i>
+                <span>Exporter en PDF</span>
+            </button>
+        </div>
+    </header>
+
+    <!-- Main Navigation -->
+    <nav class="bg-white border-b border-slate-200 sticky top-0 z-10 shadow-sm">
+        <div class="max-w-6xl mx-auto px-6 flex overflow-x-auto hide-scrollbar">
+            <button id="btn-overview" onclick="setActiveTab('overview')" class="nav-btn py-4 px-6 whitespace-nowrap font-medium text-sm transition-colors border-b-2 border-blue-600 text-blue-600">
+                Vue d'ensemble & Comparatif
+            </button>
+            <button id="btn-aggregator" onclick="setActiveTab('aggregator')" class="nav-btn py-4 px-6 whitespace-nowrap font-medium text-sm transition-colors border-b-2 border-transparent text-slate-500 hover:text-slate-800">
+                Option 1 : Intégration d'un Agrégateur (API)
+            </button>
+            <button id="btn-scratch" onclick="setActiveTab('scratch')" class="nav-btn py-4 px-6 whitespace-nowrap font-medium text-sm transition-colors border-b-2 border-transparent text-slate-500 hover:text-slate-800">
+                Option 2 : Développement Propriétaire (From Scratch)
+            </button>
+        </div>
+    </nav>
+
+    <!-- Content Area -->
+    <main class="max-w-6xl mx-auto px-6 py-12">
+        
+        <!-- TAB: OVERVIEW -->
+        <div id="content-overview" class="tab-content space-y-16 fade-in">
+            
+            <!-- Intro Cards -->
+            <div class="grid md:grid-cols-2 gap-6">
+                <!-- Card Option 1 -->
+                <div onclick="setActiveTab('aggregator')" class="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm hover:shadow-md transition-all cursor-pointer group">
+                    <div class="mb-4 p-3 bg-blue-50 rounded-lg inline-block group-hover:scale-110 transition-transform">
+                        <i data-lucide="rocket" class="w-8 h-8 text-blue-500"></i>
+                    </div>
+                    <h3 class="text-xl font-bold mb-2">Option 1 : Intégration d'un Agrégateur (API)</h3>
+                    <p class="text-sm text-slate-500 font-medium mb-3">Stratégie de déploiement accéléré (Time-to-Market)</p>
+                    <p class="text-slate-600 text-sm mb-4 line-clamp-2">Exploitation d'une infrastructure tierce (ex: Paystack, CinetPay, Bizao) disposant d'accords contractuels et techniques préexistants...</p>
+                    <div class="flex items-center text-sm font-semibold text-blue-600 group-hover:translate-x-1 transition-transform">
+                        Voir les détails <i data-lucide="chevron-right" class="w-4 h-4 ml-1"></i>
+                    </div>
+                </div>
+
+                <!-- Card Option 2 -->
+                <div onclick="setActiveTab('scratch')" class="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm hover:shadow-md transition-all cursor-pointer group">
+                    <div class="mb-4 p-3 bg-emerald-50 rounded-lg inline-block group-hover:scale-110 transition-transform">
+                        <i data-lucide="code-2" class="w-8 h-8 text-emerald-500"></i>
+                    </div>
+                    <h3 class="text-xl font-bold mb-2">Option 2 : Développement Propriétaire</h3>
+                    <p class="text-sm text-slate-500 font-medium mb-3">Stratégie de souveraineté technologique</p>
+                    <p class="text-slate-600 text-sm mb-4 line-clamp-2">Conception et développement d'un switch monétique interne, nécessitant des interconnexions techniques et contractuelles directes...</p>
+                    <div class="flex items-center text-sm font-semibold text-emerald-600 group-hover:translate-x-1 transition-transform">
+                        Voir les détails <i data-lucide="chevron-right" class="w-4 h-4 ml-1"></i>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Comparison Table -->
+            <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+                <div class="p-6 border-b border-slate-200 bg-slate-50">
+                    <h2 class="text-2xl font-bold flex items-center gap-2">
+                        <i data-lucide="zap" class="w-6 h-6 text-amber-500"></i>
+                        Matrice de Décision
+                    </h2>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr class="bg-white border-b border-slate-200">
+                                <th class="p-4 text-slate-500 font-medium text-sm w-1/4">Critères</th>
+                                <th class="p-4 font-bold text-slate-800">Option 1 : Agrégateur API</th>
+                                <th class="p-4 font-bold text-slate-800">Option 2 : Développement Direct</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-100">
+                            <tr class="hover:bg-slate-50/50">
+                                <td class="p-4 font-medium flex items-center gap-2">
+                                    <i data-lucide="clock" class="w-4 h-4 text-slate-400"></i> Délai de lancement
+                                </td>
+                                <td class="p-4"><span class="inline-flex px-2.5 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">Court (2-3 mois)</span></td>
+                                <td class="p-4"><span class="inline-flex px-2.5 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800">Prolongé (12-24 mois)</span></td>
+                            </tr>
+                            <tr class="hover:bg-slate-50/50">
+                                <td class="p-4 font-medium flex items-center gap-2">
+                                    <i data-lucide="credit-card" class="w-4 h-4 text-slate-400"></i> Investissement initial
+                                </td>
+                                <td class="p-4"><span class="inline-flex px-2.5 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">Limité (OPEX privilégié)</span></td>
+                                <td class="p-4"><span class="inline-flex px-2.5 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800">Conséquent (CAPEX + Légal)</span></td>
+                            </tr>
+                            <tr class="hover:bg-slate-50/50">
+                                <td class="p-4 font-medium flex items-center gap-2">
+                                    <i data-lucide="trending-up" class="w-4 h-4 text-slate-400"></i> Rentabilité (Marges)
+                                </td>
+                                <td class="p-4"><span class="inline-flex px-2.5 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800">Modérée (Frais tiers)</span></td>
+                                <td class="p-4"><span class="inline-flex px-2.5 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">Optimale (Désintermédiation)</span></td>
+                            </tr>
+                            <tr class="hover:bg-slate-50/50">
+                                <td class="p-4 font-medium flex items-center gap-2">
+                                    <i data-lucide="shield-check" class="w-4 h-4 text-slate-400"></i> Indépendance
+                                </td>
+                                <td class="p-4"><span class="inline-flex px-2.5 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">Déléguée / Partagée</span></td>
+                                <td class="p-4"><span class="inline-flex px-2.5 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">Totale</span></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Recommendation block -->
+            <div class="bg-indigo-50 border border-indigo-100 rounded-2xl p-8 text-center">
+                <h3 class="text-xl font-bold text-indigo-900 mb-4">Recommandation Stratégique</h3>
+                <p class="text-indigo-800 max-w-3xl mx-auto mb-6">
+                    Afin de mitiger les risques opérationnels et de valider l'adéquation produit-marché (Product-Market Fit), il est stratégiquement recommandé d'<strong>initier le projet via l'Option 1 (Agrégateur)</strong>. Une fois les volumes transactionnels consolidés, une phase de migration vers l'Option 2 (Développement Propriétaire) pourra être planifiée pour optimiser la structure de coûts et garantir l'indépendance technologique de l'entreprise.
+                </p>
+                <button onclick="setActiveTab('aggregator')" class="print-hidden bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-3 rounded-lg font-medium transition-colors shadow-sm">
+                    Explorer l'Option 1 en détail
+                </button>
+            </div>
+        </div>
+
+        <!-- TAB: OPTION 1 -->
+        <div id="content-aggregator" class="tab-content hidden fade-in">
+            <div class="bg-white rounded-3xl p-8 md:p-12 border border-slate-200 shadow-sm relative overflow-hidden">
+                <div class="absolute -top-24 -right-24 w-64 h-64 bg-blue-50 rounded-full opacity-50 blur-3xl pointer-events-none"></div>
+
+                <div class="flex items-center gap-4 mb-6 relative z-10">
+                    <div class="p-4 bg-blue-50 rounded-2xl">
+                        <i data-lucide="rocket" class="w-8 h-8 text-blue-500"></i>
+                    </div>
+                    <div>
+                        <h2 class="text-3xl font-bold text-slate-900">Option 1 : Intégration d'un Agrégateur (API)</h2>
+                        <p class="text-blue-600 font-semibold mt-1">Stratégie de déploiement accéléré (Time-to-Market)</p>
+                    </div>
+                </div>
+
+                <p class="text-lg text-slate-600 mb-10 leading-relaxed max-w-4xl relative z-10">
+                    Exploitation d'une infrastructure tierce (ex: Paystack, CinetPay, Bizao) disposant d'accords contractuels et techniques préexistants avec les institutions bancaires et les opérateurs télécoms.
+                </p>
+
+                <div class="grid md:grid-cols-2 gap-8 lg:gap-12 relative z-10">
+                    <!-- Pros -->
+                    <div class="bg-green-50/50 rounded-2xl p-6 border border-green-100">
+                        <h3 class="text-lg font-bold text-green-900 mb-6 flex items-center gap-2">
+                            <i data-lucide="check-circle-2" class="w-5 h-5 text-green-600"></i>
+                            Avantages et Opportunités
+                        </h3>
+                        <ul class="space-y-4">
+                            <li class="flex items-start gap-3">
+                                <div class="mt-1 w-1.5 h-1.5 rounded-full bg-green-500 flex-shrink-0"></div>
+                                <span class="text-slate-700 leading-tight">Déploiement technique rapide (quelques semaines)</span>
+                            </li>
+                            <li class="flex items-start gap-3">
+                                <div class="mt-1 w-1.5 h-1.5 rounded-full bg-green-500 flex-shrink-0"></div>
+                                <span class="text-slate-700 leading-tight">Délégation de la maintenance et de la conformité réglementaire (ex: PCI-DSS)</span>
+                            </li>
+                            <li class="flex items-start gap-3">
+                                <div class="mt-1 w-1.5 h-1.5 rounded-full bg-green-500 flex-shrink-0"></div>
+                                <span class="text-slate-700 leading-tight">Point d'intégration unique pour une multitude de moyens de paiement</span>
+                            </li>
+                            <li class="flex items-start gap-3">
+                                <div class="mt-1 w-1.5 h-1.5 rounded-full bg-green-500 flex-shrink-0"></div>
+                                <span class="text-slate-700 leading-tight">Possibilité de négocier un pourcentage sur le flux de transactions (mensuel, trimestriel ou annuel) au lieu de frais par transaction</span>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <!-- Cons -->
+                    <div class="bg-red-50/50 rounded-2xl p-6 border border-red-100">
+                        <h3 class="text-lg font-bold text-red-900 mb-6 flex items-center gap-2">
+                            <i data-lucide="alert-triangle" class="w-5 h-5 text-red-600"></i>
+                            Contraintes et Risques
+                        </h3>
+                        <ul class="space-y-4">
+                            <li class="flex items-start gap-3">
+                                <div class="mt-1 w-1.5 h-1.5 rounded-full bg-red-500 flex-shrink-0"></div>
+                                <span class="text-slate-700 leading-tight">Structure de coûts variables à anticiper (bien que négociable selon les volumes)</span>
+                            </li>
+                            <li class="flex items-start gap-3">
+                                <div class="mt-1 w-1.5 h-1.5 rounded-full bg-red-500 flex-shrink-0"></div>
+                                <span class="text-slate-700 leading-tight">Dépendance technologique envers le fournisseur de la solution</span>
+                            </li>
+                            <li class="flex items-start gap-3">
+                                <div class="mt-1 w-1.5 h-1.5 rounded-full bg-red-500 flex-shrink-0"></div>
+                                <span class="text-slate-700 leading-tight">Flexibilité restreinte concernant la personnalisation de flux de paiement atypiques</span>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="mt-12 pt-8 border-t border-slate-100 flex justify-between items-center relative z-10 print-hidden">
+                    <button onclick="setActiveTab('overview')" class="text-slate-500 hover:text-slate-900 font-medium transition-colors">
+                        &larr; Retour au comparatif
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB: OPTION 2 -->
+        <div id="content-scratch" class="tab-content hidden fade-in">
+            <div class="bg-white rounded-3xl p-8 md:p-12 border border-slate-200 shadow-sm relative overflow-hidden">
+                <div class="absolute -top-24 -right-24 w-64 h-64 bg-emerald-50 rounded-full opacity-50 blur-3xl pointer-events-none"></div>
+
+                <div class="flex items-center gap-4 mb-6 relative z-10">
+                    <div class="p-4 bg-emerald-50 rounded-2xl">
+                        <i data-lucide="code-2" class="w-8 h-8 text-emerald-500"></i>
+                    </div>
+                    <div>
+                        <h2 class="text-3xl font-bold text-slate-900">Option 2 : Développement Propriétaire (From Scratch)</h2>
+                        <p class="text-emerald-600 font-semibold mt-1">Stratégie de souveraineté technologique</p>
+                    </div>
+                </div>
+
+                <p class="text-lg text-slate-600 mb-10 leading-relaxed max-w-4xl relative z-10">
+                    Conception et développement d'un switch monétique interne, nécessitant des interconnexions techniques et contractuelles directes avec chaque acteur financier (banques, telcos).
+                </p>
+
+                <div class="grid md:grid-cols-2 gap-8 lg:gap-12 relative z-10">
+                    <!-- Pros -->
+                    <div class="bg-green-50/50 rounded-2xl p-6 border border-green-100">
+                        <h3 class="text-lg font-bold text-green-900 mb-6 flex items-center gap-2">
+                            <i data-lucide="check-circle-2" class="w-5 h-5 text-green-600"></i>
+                            Avantages et Opportunités
+                        </h3>
+                        <ul class="space-y-4">
+                            <li class="flex items-start gap-3">
+                                <div class="mt-1 w-1.5 h-1.5 rounded-full bg-green-500 flex-shrink-0"></div>
+                                <span class="text-slate-700 leading-tight">Maîtrise technologique et souveraineté stratégique absolues</span>
+                            </li>
+                            <li class="flex items-start gap-3">
+                                <div class="mt-1 w-1.5 h-1.5 rounded-full bg-green-500 flex-shrink-0"></div>
+                                <span class="text-slate-700 leading-tight">Optimisation de la rentabilité transactionnelle (désintermédiation)</span>
+                            </li>
+                            <li class="flex items-start gap-3">
+                                <div class="mt-1 w-1.5 h-1.5 rounded-full bg-green-500 flex-shrink-0"></div>
+                                <span class="text-slate-700 leading-tight">Création d'une propriété intellectuelle (IP) à forte valeur ajoutée</span>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <!-- Cons -->
+                    <div class="bg-red-50/50 rounded-2xl p-6 border border-red-100">
+                        <h3 class="text-lg font-bold text-red-900 mb-6 flex items-center gap-2">
+                            <i data-lucide="alert-triangle" class="w-5 h-5 text-red-600"></i>
+                            Contraintes et Risques
+                        </h3>
+                        <ul class="space-y-4">
+                            <li class="flex items-start gap-3">
+                                <div class="mt-1 w-1.5 h-1.5 rounded-full bg-red-500 flex-shrink-0"></div>
+                                <span class="text-slate-700 leading-tight">Cycle de développement et de mise sur le marché prolongé (12 à 24 mois)</span>
+                            </li>
+                            <li class="flex items-start gap-3">
+                                <div class="mt-1 w-1.5 h-1.5 rounded-full bg-red-500 flex-shrink-0"></div>
+                                <span class="text-slate-700 leading-tight">Nécessité d'un investissement en capital initial (CAPEX) très significatif</span>
+                            </li>
+                            <li class="flex items-start gap-3">
+                                <div class="mt-1 w-1.5 h-1.5 rounded-full bg-red-500 flex-shrink-0"></div>
+                                <span class="text-slate-700 leading-tight">Responsabilité interne de la conformité réglementaire, légale et sécuritaire</span>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="mt-12 pt-8 border-t border-slate-100 flex justify-between items-center relative z-10 print-hidden">
+                    <button onclick="setActiveTab('overview')" class="text-slate-500 hover:text-slate-900 font-medium transition-colors">
+                        &larr; Retour au comparatif
+                    </button>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Script de navigation -->
+    <script>
+        // Initialiser les icônes Lucide
+        lucide.createIcons();
+
+        function setActiveTab(tabId) {
+            // 1. Cacher tous les contenus
+            const contents = document.querySelectorAll('.tab-content');
+            contents.forEach(content => {
+                content.classList.add('hidden');
+            });
+
+            // 2. Réinitialiser les styles de tous les boutons de navigation
+            const buttons = document.querySelectorAll('.nav-btn');
+            buttons.forEach(btn => {
+                // Enlever les couleurs actives potentielles
+                btn.classList.remove('border-blue-600', 'text-blue-600', 'border-emerald-600', 'text-emerald-700');
+                // Remettre le style inactif
+                btn.classList.add('border-transparent', 'text-slate-500');
+            });
+
+            // 3. Afficher le contenu ciblé
+            const activeContent = document.getElementById('content-' + tabId);
+            if(activeContent) {
+                activeContent.classList.remove('hidden');
+                
+                // Forcer un petit reflow pour relancer l'animation (fade-in)
+                activeContent.classList.remove('fade-in');
+                void activeContent.offsetWidth; 
+                activeContent.classList.add('fade-in');
+            }
+
+            // 4. Appliquer le style actif au bouton cliqué
+            const activeBtn = document.getElementById('btn-' + tabId);
+            if(activeBtn) {
+                activeBtn.classList.remove('border-transparent', 'text-slate-500');
+                
+                if (tabId === 'overview' || tabId === 'aggregator') {
+                    activeBtn.classList.add('border-blue-600', 'text-blue-600');
+                } else if (tabId === 'scratch') {
+                    activeBtn.classList.add('border-emerald-600', 'text-emerald-700');
+                }
+            }
+            
+            // 5. Scroll vers le haut si on clique depuis le bas de la page
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+    </script>
+</body>
+</html>
