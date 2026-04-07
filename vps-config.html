@@ -28,7 +28,20 @@
             transition: opacity 0.2s;
         }
         pre:hover .copy-btn { opacity: 1; }
+        .warning-box {
+            background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+            border-left: 4px solid #f59e0b;
+        }
+        .danger-box {
+            background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
+            border-left: 4px solid #dc2626;
+        }
+        .success-box {
+            background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
+            border-left: 4px solid #059669;
+        }
     </style>
+<base target="_blank">
 </head>
 <body class="bg-slate-50 text-slate-900">
 
@@ -87,8 +100,8 @@
         <main class="flex-1 lg:ml-64 p-4 md:p-10 max-w-4xl mx-auto">
             <header class="mb-12">
                 <div class="flex items-center gap-2 text-blue-600 font-semibold mb-2">
-                    <span class="px-2 py-1 bg-blue-100 rounded text-xs uppercase tracking-wider">v2.0.0</span>
-                    <span class="text-sm">Ubuntu Server + Web Stack</span>
+                    <span class="px-2 py-1 bg-blue-100 rounded text-xs uppercase tracking-wider">v2.1.0</span>
+                    <span class="text-sm">Ubuntu Server 22.04/24.04 + Web Stack</span>
                 </div>
                 <h1 class="text-4xl font-extrabold text-slate-900 mb-4">Sécurisation & Déploiement Web</h1>
                 <p class="text-lg text-slate-600 leading-relaxed">
@@ -161,7 +174,18 @@ timedatectl set-ntp true</code><button class="copy-btn" onclick="copyCode(this)"
 
             <!-- Phase 3 -->
             <section id="phase3" class="mb-16 scroll-mt-24">
-                <h2 class="text-2xl font-bold mb-6">🔐 Phase 3 : Durcissement SSH</h2>
+                <h2 class="text-2xl font-bold mb-6">🔐 Phase 3 : Durcissement SSH (Socket Activation)</h2>
+                
+                <div class="danger-box p-4 rounded-xl mb-6">
+                    <div class="flex items-start gap-3">
+                        <i data-lucide="alert-triangle" class="w-5 h-5 text-red-600 mt-0.5"></i>
+                        <div>
+                            <p class="font-semibold text-red-800 mb-1">⚠️ CRITIQUE - Ubuntu 22.04/24.04</p>
+                            <p class="text-red-700 text-sm">Depuis Ubuntu 22.10, SSH utilise <strong>socket activation</strong> (ssh.socket) par défaut. Modifier seulement <code>/etc/ssh/sshd_config</code> ne suffit pas. Il faut désactiver la socket activation pour revenir au comportement classique.</p>
+                        </div>
+                    </div>
+                </div>
+
                 <div class="bg-white rounded-2xl border p-8 space-y-6">
                     <p>Éditez <code>/etc/ssh/sshd_config</code> et modifiez les paramètres suivants :</p>
                     <ul class="space-y-3 text-slate-700">
@@ -169,25 +193,61 @@ timedatectl set-ntp true</code><button class="copy-btn" onclick="copyCode(this)"
                         <li class="flex items-center gap-3"><span class="w-1.5 h-1.5 rounded-full bg-blue-500"></span> <strong>PermitRootLogin no</strong> (Bloque root)</li>
                         <li class="flex items-center gap-3"><span class="w-1.5 h-1.5 rounded-full bg-blue-500"></span> <strong>PasswordAuthentication no</strong> (Clés uniquement)</li>
                     </ul>
+
                     <div class="bg-slate-900 rounded-xl p-5 text-slate-300 font-mono text-sm">
-                        <pre><code>sudo sshd -t
+                        <div class="flex justify-between items-center mb-2">
+                            <span class="text-xs text-slate-500 uppercase font-sans">1. Configuration SSH</span>
+                        </div>
+                        <pre><code>sed -i 's/^#Port 22/Port 2222/' /etc/ssh/sshd_config
+sed -i 's/^#PermitRootLogin.*/PermitRootLogin no/' /etc/ssh/sshd_config
+sed -i 's/^PasswordAuthentication yes/PasswordAuthentication no/' /etc/ssh/sshd_config</code><button class="copy-btn" onclick="copyCode(this)">Copier</button></pre>
+                    </div>
+
+                    <div class="bg-slate-900 rounded-xl p-5 text-slate-300 font-mono text-sm">
+                        <div class="flex justify-between items-center mb-2">
+                            <span class="text-xs text-slate-500 uppercase font-sans">2. Désactiver Socket Activation (CRITIQUE)</span>
+                        </div>
+                        <pre><code># Désactiver et arrêter le socket systemd
+sudo systemctl disable --now ssh.socket
+
+# Activer le service SSH classique pour qu'il démarre au boot
+sudo systemctl enable --now ssh.service
+
+# Recharger systemd et redémarrer SSH
+sudo systemctl daemon-reload
 sudo systemctl restart ssh</code><button class="copy-btn" onclick="copyCode(this)">Copier</button></pre>
+                    </div>
+
+                    <div class="warning-box p-4 rounded-lg">
+                        <p class="text-amber-800 text-sm font-semibold mb-2">🔒 Gardez votre session SSH actuelle ouverte !</p>
+                        <p class="text-amber-700 text-sm">Testez la connexion sur le nouveau port dans un nouveau terminal avant de fermer cette session :</p>
+                        <code class="block mt-2 p-2 bg-amber-100 rounded text-amber-900 font-mono text-xs">ssh -p 2222 adminuser@IP_DU_VPS</code>
                     </div>
                 </div>
             </section>
 
             <!-- Phase 4 -->
             <section id="phase4" class="mb-16 scroll-mt-24">
-                <h2 class="text-2xl font-bold mb-6">🔥 Phase 4 : Réseau & Protection</h2>
+                <h2 class="text-2xl font-bold mb-6">🔥 Phase 4 : Réseau & Protection (Ordre correct)</h2>
+                
+                <div class="danger-box p-4 rounded-xl mb-6">
+                    <div class="flex items-start gap-3">
+                        <i data-lucide="alert-triangle" class="w-5 h-5 text-red-600 mt-0.5"></i>
+                        <div>
+                            <p class="font-semibold text-red-800 mb-1">⚠️ Ordre des opérations CRITIQUE</p>
+                            <p class="text-red-700 text-sm">Ne tentez pas d'ouvrir les ports Nginx avant d'avoir installé Nginx ! Le profil UFW 'Nginx Full' n'existe que si Nginx est installé.</p>
+                        </div>
+                    </div>
+                </div>
+
                 <div class="grid md:grid-cols-2 gap-6">
                     <div class="bg-white rounded-2xl border p-6">
-                        <h3 class="font-bold mb-4 flex items-center gap-2"><i data-lucide="shield" class="text-blue-600"></i> Pare-feu UFW</h3>
-                        <p class="text-sm text-slate-500 mb-3">On ajoute Nginx Full pour ouvrir les ports 80 et 443.</p>
+                        <h3 class="font-bold mb-4 flex items-center gap-2"><i data-lucide="shield" class="text-blue-600"></i> Étape A : Pare-feu UFW (Base)</h3>
+                        <p class="text-sm text-slate-500 mb-3">Configurer UFW AVANT d'installer Nginx. Ouvrir uniquement le port SSH personnalisé.</p>
                         <div class="bg-slate-900 rounded-xl p-4 text-slate-300 font-mono text-xs">
                             <pre><code>sudo ufw default deny incoming
 sudo ufw default allow outgoing
 sudo ufw allow 2222/tcp
-sudo ufw allow 'Nginx Full'
 sudo ufw enable</code><button class="copy-btn" onclick="copyCode(this)">Copier</button></pre>
                         </div>
                     </div>
@@ -195,9 +255,20 @@ sudo ufw enable</code><button class="copy-btn" onclick="copyCode(this)">Copier</
                         <h3 class="font-bold mb-4 flex items-center gap-2"><i data-lucide="zap" class="text-blue-600"></i> Fail2ban</h3>
                         <div class="bg-slate-900 rounded-xl p-4 text-slate-300 font-mono text-xs">
                             <pre><code>sudo apt install fail2ban -y
-# Config dans /etc/fail2ban/jail.local
-sudo systemctl restart fail2ban</code><button class="copy-btn" onclick="copyCode(this)">Copier</button></pre>
+sudo systemctl enable --now fail2ban</code><button class="copy-btn" onclick="copyCode(this)">Copier</button></pre>
                         </div>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-2xl border p-6 mt-6">
+                    <h3 class="font-bold mb-4 flex items-center gap-2"><i data-lucide="layout" class="text-green-600"></i> Étape B : Ports Nginx (APRÈS installation)</h3>
+                    <p class="text-sm text-slate-500 mb-3">Une fois Nginx installé (Phase 7), ouvrez les ports HTTP/HTTPS :</p>
+                    <div class="bg-slate-900 rounded-xl p-4 text-slate-300 font-mono text-xs">
+                        <pre><code># Après installation de Nginx uniquement !
+sudo ufw allow 80/tcp
+sudo ufw allow 443/tcp
+# OU si vous préférez utiliser le profil :
+# sudo ufw allow 'Nginx Full'</code><button class="copy-btn" onclick="copyCode(this)">Copier</button></pre>
                     </div>
                 </div>
             </section>
@@ -263,7 +334,11 @@ sudo nano /etc/nginx/sites-available/mon-domaine.com</code><button class="copy-b
                         <pre><code>sudo ln -s /etc/nginx/sites-available/mon-domaine.com /etc/nginx/sites-enabled/
 sudo rm /etc/nginx/sites-enabled/default
 sudo nginx -t
-sudo systemctl restart nginx</code><button class="copy-btn" onclick="copyCode(this)">Copier</button></pre>
+sudo systemctl restart nginx
+
+# N'oubliez pas d'ouvrir les ports UFW maintenant !
+sudo ufw allow 80/tcp
+sudo ufw allow 443/tcp</code><button class="copy-btn" onclick="copyCode(this)">Copier</button></pre>
                     </div>
                 </div>
             </section>
@@ -272,51 +347,86 @@ sudo systemctl restart nginx</code><button class="copy-btn" onclick="copyCode(th
             <section id="script" class="mb-16 scroll-mt-24">
                 <div class="bg-slate-900 text-white rounded-2xl p-8 overflow-hidden relative">
                     <div class="relative z-10">
-                        <h2 class="text-2xl font-bold mb-4 flex items-center gap-2"><i data-lucide="terminal" class="text-green-400"></i> Script d'Automatisation (Tout-en-un)</h2>
-                        <p class="text-slate-400 mb-6">Ce script exécute toutes les actions (Sécurité, PostgreSQL, Node, Nginx) en une seule passe. <strong>Éditez les variables au début du script avant de le lancer.</strong></p>
+                        <h2 class="text-2xl font-bold mb-4 flex items-center gap-2"><i data-lucide="terminal" class="text-green-400"></i> Script d'Automatisation Corrigé</h2>
+                        
+                        <div class="danger-box p-4 rounded-lg mb-6">
+                            <p class="text-red-800 text-sm font-bold mb-2">⚠️ AVERTISSEMENT - Lire avant utilisation :</p>
+                            <ul class="text-red-700 text-sm space-y-1 list-disc list-inside">
+                                <li>Ce script modifie le port SSH - risque de verrouillage si mal exécuté</li>
+                                <li>Gardez TOUJOURS une session SSH ouverte pendant l'exécution</li>
+                                <li>Testez la connexion sur le port 2222 dans un nouveau terminal avant de fermer</li>
+                                <li>Adaptez les variables au début du script</li>
+                            </ul>
+                        </div>
+
+                        <p class="text-slate-400 mb-6">Ce script corrigé gère la socket activation SSH et respecte l'ordre correct des opérations UFW.</p>
+                        
                         <div class="bg-black/50 rounded-xl p-5 font-mono text-xs text-green-400 border border-green-900/30 overflow-x-auto">
                             <pre id="oneLinerCode"><code>#!/bin/bash
 set -e
 
-# VARIABLES (À MODIFIER)
+# VARIABLES (À MODIFIER IMPÉRATIVEMENT)
+NEW_SSH_PORT="2222"
 DOMAIN_NAME="ton-domaine.com"
 APP_DIR="/var/www/$DOMAIN_NAME"
 DB_NAME="app_db"
 DB_USER="app_user"
 DB_PASS="SuperPassword123!"
 
-# 1. MISE À JOUR & UTILITAIRES
+echo "=========================================="
+echo "⚠️  NE FERMEZ PAS CETTE SESSION SSH !"
+echo "Testez la connexion sur le port $NEW_SSH_PORT"
+echo "dans un nouveau terminal avant de continuer."
+echo "=========================================="
+
+echo "=== 1. MISE À JOUR SYSTÈME ==="
 apt update && apt full-upgrade -y
-apt install -y ufw fail2ban unattended-upgrades htop curl wget gnupg2
+apt install -y fail2ban postgresql postgresql-contrib curl gnupg2
 
-# 2. PARE-FEU & SSH
-ufw default deny incoming
-ufw allow 2222/tcp
-ufw allow 'Nginx Full'
-ufw --force enable
-
-sed -i 's/^#Port 22/Port 2222/' /etc/ssh/sshd_config
+echo "=== 2. CONFIGURATION SSH (Socket Activation Fix) ==="
+# Modifier la config SSH
+sed -i "s/^#Port 22/Port $NEW_SSH_PORT/" /etc/ssh/sshd_config
 sed -i 's/^#PermitRootLogin.*/PermitRootLogin no/' /etc/ssh/sshd_config
 sed -i 's/^PasswordAuthentication yes/PasswordAuthentication no/' /etc/ssh/sshd_config
+
+# CRITIQUE : Désactiver socket activation Ubuntu 22.04+
+systemctl disable --now ssh.socket 2>/dev/null || true
+rm -f /etc/systemd/system/ssh.service.d/00-socket.conf
+systemctl daemon-reload
+systemctl enable --now ssh.service
 systemctl restart ssh
-systemctl restart fail2ban
 
-# 3. POSTGRESQL
-apt install -y postgresql postgresql-contrib
-sudo -u postgres psql -c "CREATE USER $DB_USER WITH PASSWORD '$DB_PASS';"
-sudo -u postgres psql -c "CREATE DATABASE $DB_NAME OWNER $DB_USER;"
+echo "=== 3. PARE-FEU (UFW) - Configuration de base ==="
+# IMPORTANT : Autoriser NOUVEAU port SSH avant d'activer UFW !
+ufw default deny incoming
+ufw default allow outgoing
+ufw allow "$NEW_SSH_PORT/tcp"
+ufw --force enable
 
-# 4. NODE.JS 20
+echo "=== 4. POSTGRESQL ==="
+sudo -u postgres psql -c "CREATE USER $DB_USER WITH PASSWORD '$DB_PASS';" || true
+sudo -u postgres psql -c "CREATE DATABASE $DB_NAME OWNER $DB_USER;" || true
+
+echo "=== 5. NODE.JS ==="
 curl -fsSL https://deb.nodesource.com/setup_20.x | bash -
 apt install -y nodejs
 
-# 5. NGINX & REACT CONFIG
+echo "=== 6. FAIL2BAN ==="
+systemctl enable --now fail2ban
+
+echo "=== 7. NGINX (APRÈS UFW de base) ==="
 apt install -y nginx
+
+# Maintenant on peut ouvrir les ports HTTP/HTTPS
+ufw allow 80/tcp
+ufw allow 443/tcp
+
+# Configuration du site
 mkdir -p "$APP_DIR"
 chown -R www-data:www-data "$APP_DIR"
 chmod -R 755 "$APP_DIR"
 
-cat &lt;&lt;EOF &gt; /etc/nginx/sites-available/$DOMAIN_NAME
+cat &lt;&lt;EOF > /etc/nginx/sites-available/$DOMAIN_NAME
 server {
     listen 80;
     server_name $DOMAIN_NAME www.$DOMAIN_NAME;
@@ -330,9 +440,19 @@ EOF
 
 ln -sf /etc/nginx/sites-available/$DOMAIN_NAME /etc/nginx/sites-enabled/
 rm -f /etc/nginx/sites-enabled/default
-systemctl restart nginx
+nginx -t && systemctl restart nginx
 
-echo "Installation terminée avec succès !"</code></pre>
+echo "=========================================="
+echo "✅ Installation terminée avec succès !"
+echo ""
+echo "🔐 NOUVEAU PORT SSH : $NEW_SSH_PORT"
+echo ""
+echo "⚠️  IMPORTANT : Testez immédiatement dans un"
+echo "nouveau terminal :"
+echo "ssh -p $NEW_SSH_PORT $(whoami)@$(hostname -I | awk '{print $1}')"
+echo ""
+echo "N'ouvrez PAS le port 22 dans UFW !"
+echo "=========================================="</code></pre>
                             <button class="mt-4 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg text-sm transition-colors flex items-center gap-2" onclick="copyFullScript()">
                                 <i data-lucide="copy" class="w-4 h-4"></i> Copier le script complet
                             </button>
@@ -357,7 +477,7 @@ echo "Installation terminée avec succès !"</code></pre>
             </section>
 
             <footer class="border-t py-12 text-center text-slate-500 text-sm">
-                <p>&copy; 2025 - Guide d'exploitation VPS & Déploiement Web</p>
+                <p>&copy; 2025 - Guide d'exploitation VPS & Déploiement Web v2.1.0</p>
                 <p class="mt-2 italic">N'oubliez pas de configurer un certificat SSL (Certbot) pour le HTTPS avant de passer en production.</p>
             </footer>
         </main>
@@ -376,19 +496,23 @@ echo "Installation terminée avec succès !"</code></pre>
         const quickTasks = [
             "Générer/Déployer clés SSH",
             "Créer utilisateur sudo",
-            "Durcir config SSH",
-            "Pare-feu (UFW & Nginx)",
+            "Durcir config SSH (Socket Activation)",
+            "Pare-feu de base (UFW) - port SSH",
             "Fail2ban",
             "Installer PostgreSQL & DB",
             "Installer Node.js v20",
-            "Configurer Nginx (SPA)"
+            "Installer Nginx",
+            "Ouvrir ports HTTP/HTTPS (après Nginx)",
+            "Configurer Virtual Host (SPA)"
         ];
 
         const finalChecks = [
             "Connexion SANS mot de passe active ?",
-            "Accès root direct et port 22 bloqués ?",
+            "Port SSH changé en 2222 et socket désactivée ?",
+            "Accès root direct bloqué ?",
+            "UFW actif avec seulement port 2222, 80, 443 ?",
             "Base de données applicative accessible ?",
-            "Nginx actif et ports 80/443 ouverts ?",
+            "Nginx actif et configuration testée (nginx -t) ?",
             "Application Vite 'buildée' (npm run build) ?",
             "Le site web est accessible via le nom de domaine ?"
         ];
@@ -458,7 +582,7 @@ echo "Installation terminée avec succès !"</code></pre>
         // Active section tracking
         const observerOptions = {
             root: null,
-            threshold: 0.3 // Diminué légèrement pour les sections plus longues
+            threshold: 0.3
         };
 
         const observer = new IntersectionObserver((entries) => {
